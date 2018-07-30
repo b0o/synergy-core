@@ -1,11 +1,11 @@
 /*
  * synergy -- mouse and keyboard sharing utility
  * Copyright (C) 2015-2016 Symless Ltd.
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -18,79 +18,68 @@
 #include "SecureListenSocket.h"
 
 #include "SecureSocket.h"
+#include "arch/XArch.h"
 #include "net/NetworkAddress.h"
 #include "net/SocketMultiplexer.h"
 #include "net/TSocketMultiplexerMethodJob.h"
-#include "arch/XArch.h"
 
-static const char s_certificateDir[] = { "SSL" };
-static const char s_certificateFilename[] = { "Synergy.pem" };
+static const char s_certificateDir[] = {"SSL"};
+static const char s_certificateFilename[] = {"Synergy.pem"};
 
 //
 // SecureListenSocket
 //
 
-SecureListenSocket::SecureListenSocket(
-        IEventQueue* events,
-        SocketMultiplexer* socketMultiplexer,
-        IArchNetwork::EAddressFamily family) :
-    TCPListenSocket(events, socketMultiplexer, family)
-{
+SecureListenSocket::SecureListenSocket(IEventQueue *events,
+                                       SocketMultiplexer *socketMultiplexer,
+                                       IArchNetwork::EAddressFamily family)
+    : TCPListenSocket(events, socketMultiplexer, family) {}
+
+SecureListenSocket::~SecureListenSocket() {
+  SecureSocketSet::iterator it;
+  for (it = m_secureSocketSet.begin(); it != m_secureSocketSet.end(); it++) {
+    delete *it;
+  }
+  m_secureSocketSet.clear();
 }
 
-SecureListenSocket::~SecureListenSocket()
-{
-    SecureSocketSet::iterator it;
-    for (it = m_secureSocketSet.begin(); it != m_secureSocketSet.end(); it++) {
-        delete *it;
+IDataSocket *SecureListenSocket::accept() {
+  SecureSocket *socket = NULL;
+  try {
+    socket = new SecureSocket(m_events, m_socketMultiplexer,
+                              ARCH->acceptSocket(m_socket, NULL));
+    socket->initSsl(true);
+
+    if (socket != NULL) {
+      setListeningJob();
     }
-    m_secureSocketSet.clear();
-}
 
-IDataSocket*
-SecureListenSocket::accept()
-{
-    SecureSocket* socket = NULL;
-    try {
-        socket = new SecureSocket(
-                        m_events,
-                        m_socketMultiplexer,
-                        ARCH->acceptSocket(m_socket, NULL));
-        socket->initSsl(true);
+    String certificateFilename = synergy::string::sprintf(
+        "%s/%s/%s", ARCH->getProfileDirectory().c_str(), s_certificateDir,
+        s_certificateFilename);
 
-        if (socket != NULL) {
-            setListeningJob();
-        }
-
-        String certificateFilename = synergy::string::sprintf("%s/%s/%s",
-                                        ARCH->getProfileDirectory().c_str(),
-                                        s_certificateDir,
-                                        s_certificateFilename);
-
-        bool loaded = socket->loadCertificates(certificateFilename);
-        if (!loaded) {
-            delete socket;
-            return NULL;
-        }
-
-        socket->secureAccept();
-
-        m_secureSocketSet.insert(socket);
-
-        return dynamic_cast<IDataSocket*>(socket);
+    bool loaded = socket->loadCertificates(certificateFilename);
+    if (!loaded) {
+      delete socket;
+      return NULL;
     }
-    catch (XArchNetwork&) {
-        if (socket != NULL) {
-            delete socket;
-            setListeningJob();
-        }
-        return NULL;
+
+    socket->secureAccept();
+
+    m_secureSocketSet.insert(socket);
+
+    return dynamic_cast<IDataSocket *>(socket);
+  } catch (XArchNetwork &) {
+    if (socket != NULL) {
+      delete socket;
+      setListeningJob();
     }
-    catch (std::exception &ex) {
-        if (socket != NULL) {
-            delete socket;
-            setListeningJob();
-        }
-        throw ex;
+    return NULL;
+  } catch (std::exception &ex) {
+    if (socket != NULL) {
+      delete socket;
+      setListeningJob();
     }
+    throw ex;
+  }
 }
