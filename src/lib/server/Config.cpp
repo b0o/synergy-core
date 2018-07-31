@@ -1022,7 +1022,7 @@ void Config::parseAction(ConfigReadContext &s, const String &name,
     } else if (args[0] == "down") {
       direction = kBottom;
     } else {
-      throw XConfigRead(s, "unknown direction \"%{1}\" in switchToScreen",
+      throw XConfigRead(s, "unknown direction \"%{1}\" in switchInDirection",
                         args[0]);
     }
 
