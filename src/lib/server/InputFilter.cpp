@@ -220,6 +220,8 @@ InputFilter::Action::~Action() {
   // do nothing
 }
 
+/**** LockCursorToScreenAction ****/
+
 InputFilter::LockCursorToScreenAction::LockCursorToScreenAction(
     IEventQueue *events, Mode mode)
     : m_mode(mode), m_events(events) {
@@ -254,6 +256,8 @@ void InputFilter::LockCursorToScreenAction::perform(const Event &event) {
                            Event::kDeliverImmediately));
 }
 
+/**** SwitchToScreenAction ****/
+
 InputFilter::SwitchToScreenAction::SwitchToScreenAction(IEventQueue *events,
                                                         const String &screen)
     : m_screen(screen), m_events(events) {
@@ -287,6 +291,8 @@ void InputFilter::SwitchToScreenAction::perform(const Event &event) {
                            Event::kDeliverImmediately));
 }
 
+/**** SwitchInDirectionAction ****/
+
 InputFilter::SwitchInDirectionAction::SwitchInDirectionAction(
     IEventQueue *events, EDirection direction)
     : m_direction(direction), m_events(events) {
@@ -315,6 +321,8 @@ void InputFilter::SwitchInDirectionAction::perform(const Event &event) {
                            event.getTarget(), info,
                            Event::kDeliverImmediately));
 }
+
+/**** KeyboardBroadcastAction ****/
 
 InputFilter::KeyboardBroadcastAction::KeyboardBroadcastAction(
     IEventQueue *events, Mode mode)
@@ -369,6 +377,8 @@ void InputFilter::KeyboardBroadcastAction::perform(const Event &event) {
                            event.getTarget(), info,
                            Event::kDeliverImmediately));
 }
+
+/**** KeystrokeAction ****/
 
 InputFilter::KeystrokeAction::KeystrokeAction(IEventQueue *events,
                                               IPlatformScreen::KeyInfo *info,
@@ -433,6 +443,8 @@ void InputFilter::KeystrokeAction::perform(const Event &event) {
 const char *InputFilter::KeystrokeAction::formatName() const {
   return (m_press ? "keyDown" : "keyUp");
 }
+
+/**** MouseButtonAction ****/
 
 InputFilter::MouseButtonAction::MouseButtonAction(
     IEventQueue *events, IPlatformScreen::ButtonInfo *info, bool press)
