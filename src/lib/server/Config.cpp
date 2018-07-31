@@ -19,6 +19,7 @@
 #include "server/Config.h"
 
 #include "base/IEventQueue.h"
+#include "base/Log.h"
 #include "common/stdistream.h"
 #include "common/stdostream.h"
 #include "net/XSocket.h"
@@ -423,6 +424,31 @@ String Config::getNeighbor(const String &srcName, EDirection srcSide,
     // return neighbor's name
     return getCanonicalName(dstEdge->getName());
   }
+}
+
+String Config::getNeighborCycle(const String &srcName, EDirection dir) const {
+  assert(srcSide >= kFirstDirection && srcSide <= kLastDirection);
+
+  // find source cell
+  // CellMap::const_iterator index = m_map.find(getCanonicalName(srcName));
+  CellMap::const_iterator index = m_map.find(getCanonicalName(srcName));
+
+  switch (dir) {
+  case kNext:
+    if (index == m_map.end()) {
+      return getCanonicalName(m_map.begin()->first);
+    }
+    index++;
+  case kPrevious:
+    if (index == m_map.begin()) {
+      return getCanonicalName(m_map.end()->first);
+    }
+    index--;
+  default:
+    return String();
+  }
+
+  return getCanonicalName(index->first);
 }
 
 bool Config::hasNeighbor(const String &srcName, EDirection srcSide) const {
@@ -1027,6 +1053,25 @@ void Config::parseAction(ConfigReadContext &s, const String &name,
     }
 
     action = new InputFilter::SwitchInDirectionAction(m_events, direction);
+  }
+
+  else if (name == "cycleScreens") {
+    if (args.size() != 1) {
+      throw XConfigRead(s, "syntax for action: cycleScreens(<previous|next>)");
+    }
+    LOG((CLOG_DEBUG1 "registering handler cycleScreens(%s)", args[0].c_str()));
+
+    EDirection direction;
+    if (args[0] == "previous") {
+      direction = kPrevious;
+    } else if (args[0] == "next") {
+      direction = kNext;
+    } else {
+      throw XConfigRead(s, "unknown direction \"%{1}\" in cycleScreens",
+                        args[0]);
+    }
+
+    action = new InputFilter::CycleScreensAction(m_events, direction);
   }
 
   else if (name == "lockCursorToScreen") {

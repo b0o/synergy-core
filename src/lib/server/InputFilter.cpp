@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "server/InputFilter.h"
 #include "base/EventQueue.h"
 #include "base/Log.h"
 #include "base/TMethodEventJob.h"
+#include "server/InputFilter.h"
 #include "server/PrimaryClient.h"
 #include "server/Server.h"
 #include "synergy/KeyMap.h"
@@ -312,6 +312,33 @@ void InputFilter::SwitchInDirectionAction::perform(const Event &event) {
   Server::SwitchInDirectionInfo *info =
       Server::SwitchInDirectionInfo::alloc(m_direction);
   m_events->addEvent(Event(m_events->forServer().switchInDirection(),
+                           event.getTarget(), info,
+                           Event::kDeliverImmediately));
+}
+
+InputFilter::CycleScreensAction::CycleScreensAction(IEventQueue *events,
+                                                    EDirection direction)
+    : m_direction(direction), m_events(events) {
+  // do nothing
+}
+
+EDirection InputFilter::CycleScreensAction::getDirection() const {
+  return m_direction;
+}
+
+InputFilter::Action *InputFilter::CycleScreensAction::clone() const {
+  return new CycleScreensAction(*this);
+}
+
+String InputFilter::CycleScreensAction::format() const {
+  static const char *s_names[] = {"", "previous", "next"};
+
+  return synergy::string::sprintf("cycleScreens(%s)", s_names[m_direction]);
+}
+
+void InputFilter::CycleScreensAction::perform(const Event &event) {
+  Server::CycleScreensInfo *info = Server::CycleScreensInfo::alloc(m_direction);
+  m_events->addEvent(Event(m_events->forServer().cycleScreens(),
                            event.getTarget(), info,
                            Event::kDeliverImmediately));
 }

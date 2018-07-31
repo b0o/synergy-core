@@ -136,6 +136,9 @@ Server::Server(Config &config, PrimaryClient *primaryClient,
       m_events->forServer().switchInDirection(), m_inputFilter,
       new TMethodEventJob<Server>(this, &Server::handleSwitchInDirectionEvent));
   m_events->adoptHandler(
+      m_events->forServer().cycleScreens(), m_inputFilter,
+      new TMethodEventJob<Server>(this, &Server::handleCycleScreensEvent));
+  m_events->adoptHandler(
       m_events->forServer().keyboardBroadcast(), m_inputFilter,
       new TMethodEventJob<Server>(this, &Server::handleKeyboardBroadcastEvent));
   m_events->adoptHandler(m_events->forServer().lockCursorToScreen(),
@@ -572,6 +575,50 @@ BaseClientProxy *Server::getNeighbor(BaseClientProxy *src, EDirection dir,
 
     // use position on skipped screen
     t = tTmp;
+  }
+}
+
+BaseClientProxy *Server::getNeighborCycle(BaseClientProxy *src,
+                                          EDirection dir) const {
+  // note -- must be locked on entry
+
+  assert(src != NULL);
+  assert(dir == kPrevious || dir == kNext);
+
+  // get source screen name
+  String srcName = getName(src);
+  assert(!srcName.empty());
+  LOG((CLOG_DEBUG2 "find neighbor (cycle) on %s of \"%s\"",
+       Config::dirName(dir), srcName.c_str()));
+
+  // search for the closest neighbor that exists in direction dir
+  for (;;) {
+    String dstName(m_config->getNeighborCycle(srcName, dir));
+
+    // if nothing in that direction then return NULL. if the
+    // destination is the source then we can make no more
+    // progress in this direction.  since we haven't found a
+    // connected neighbor we return NULL.
+    if (dstName.empty()) {
+      LOG((CLOG_DEBUG2 "no neighbor %s of \"%s\"", Config::dirName(dir),
+           srcName.c_str()));
+      return NULL;
+    }
+
+    // look up neighbor cell.  if the screen is connected and
+    // ready then we can stop.
+    ClientList::const_iterator index = m_clients.find(dstName);
+    if (index != m_clients.end()) {
+      LOG((CLOG_DEBUG2 "\"%s\" is %s of \"%s\"", dstName.c_str(),
+           Config::dirName(dir), srcName.c_str()));
+      return index->second;
+    }
+
+    // skip over unconnected screen
+    LOG((CLOG_DEBUG2 "ignored \"%s\" %s of \"%s\"", dstName.c_str(),
+         Config::dirName(dir), srcName.c_str()));
+
+    srcName = dstName;
   }
 }
 
@@ -1263,6 +1310,20 @@ void Server::handleSwitchInDirectionEvent(const Event &event, void *) {
   // jump to screen in chosen direction from center of this screen
   SInt32 x = m_x, y = m_y;
   BaseClientProxy *newScreen = getNeighbor(m_active, info->m_direction, x, y);
+  if (newScreen == NULL) {
+    LOG((CLOG_DEBUG1 "no neighbor %s", Config::dirName(info->m_direction)));
+  } else {
+    jumpToScreen(newScreen);
+  }
+}
+
+void Server::handleCycleScreensEvent(const Event &event, void *) {
+  SwitchInDirectionInfo *info =
+      static_cast<SwitchInDirectionInfo *>(event.getData());
+
+  // jump to screen in chosen direction from center of this screen
+  SInt32 x = m_x, y = m_y;
+  BaseClientProxy *newScreen = getNeighborCycle(m_active, info->m_direction);
   if (newScreen == NULL) {
     LOG((CLOG_DEBUG1 "no neighbor %s", Config::dirName(info->m_direction)));
   } else {
@@ -2095,6 +2156,17 @@ Server::SwitchInDirectionInfo *
 Server::SwitchInDirectionInfo::alloc(EDirection direction) {
   SwitchInDirectionInfo *info =
       (SwitchInDirectionInfo *)malloc(sizeof(SwitchInDirectionInfo));
+  info->m_direction = direction;
+  return info;
+}
+
+//
+// Server::SwitchInDirectionInfo
+//
+
+Server::CycleScreensInfo *
+Server::CycleScreensInfo::alloc(EDirection direction) {
+  CycleScreensInfo *info = (CycleScreensInfo *)malloc(sizeof(CycleScreensInfo));
   info->m_direction = direction;
   return info;
 }

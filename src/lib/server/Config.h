@@ -362,6 +362,14 @@ public:
   String getNeighbor(const String &, EDirection, float position,
                      float *positionOut) const;
 
+  //! Get neighbor (cycle)
+  /*!
+  Returns the canonical screen name of the next/previous screen. Returns the
+  empty string if there is no neighbor in that direction, otherwise saves the
+  position on the neighbor in \c positionOut if it's not \c NULL.
+  */
+  String getNeighborCycle(const String &, EDirection) const;
+
   //! Check for neighbor
   /*!
   Returns \c true if the screen has a neighbor anywhere along the edge

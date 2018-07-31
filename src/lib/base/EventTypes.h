@@ -415,7 +415,7 @@ public:
   ServerEvents()
       : m_error(Event::kUnknown), m_connected(Event::kUnknown),
         m_disconnected(Event::kUnknown), m_switchToScreen(Event::kUnknown),
-        m_switchInDirection(Event::kUnknown),
+        m_switchInDirection(Event::kUnknown), m_cycleScreens(Event::kUnknown),
         m_keyboardBroadcast(Event::kUnknown),
         m_lockCursorToScreen(Event::kUnknown),
         m_screenSwitched(Event::kUnknown) {}
@@ -461,6 +461,14 @@ public:
   */
   Event::Type switchInDirection();
 
+  //! Get cycle screens event type
+  /*!
+  Returns the cycle screens event type.  The server responds to this
+  by switching to the next screen in a given direction.  The event data is a
+  \c CycleScreensInfo* that indicates the target direction.
+  */
+  Event::Type cycleScreens();
+
   //! Get keyboard broadcast event type
   /*!
   Returns the keyboard broadcast event type.  The server responds
@@ -492,6 +500,7 @@ private:
   Event::Type m_disconnected;
   Event::Type m_switchToScreen;
   Event::Type m_switchInDirection;
+  Event::Type m_cycleScreens;
   Event::Type m_keyboardBroadcast;
   Event::Type m_lockCursorToScreen;
   Event::Type m_screenSwitched;

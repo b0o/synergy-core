@@ -58,8 +58,10 @@ enum EDirection {
   kRight,
   kTop,
   kBottom,
+  kPrevious,
+  kNext,
   kFirstDirection = kLeft,
-  kLastDirection = kBottom,
+  kLastDirection = kNext,
   kNumDirections = kLastDirection - kFirstDirection + 1
 };
 enum EDirectionMask {
@@ -67,7 +69,9 @@ enum EDirectionMask {
   kLeftMask = 1 << kLeft,
   kRightMask = 1 << kRight,
   kTopMask = 1 << kTop,
-  kBottomMask = 1 << kBottom
+  kBottomMask = 1 << kBottom,
+  kPreviousMask = 1 << kPrevious,
+  kNextMask = 1 << kNext
 };
 
 // Data transfer constants

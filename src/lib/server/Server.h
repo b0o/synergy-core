@@ -80,6 +80,15 @@ public:
     EDirection m_direction;
   };
 
+  //! Cycle screens data
+  class CycleScreensInfo {
+  public:
+    static CycleScreensInfo *alloc(EDirection direction);
+
+  public:
+    EDirection m_direction;
+  };
+
   //! Screen connected data
   class ScreenConnectedInfo {
   public:
@@ -225,6 +234,9 @@ private:
   BaseClientProxy *getNeighbor(BaseClientProxy *, EDirection, SInt32 &x,
                                SInt32 &y) const;
 
+  // lookup neighboring screen, cycling to beginning upon hitting end of list
+  BaseClientProxy *getNeighborCycle(BaseClientProxy *, EDirection) const;
+
   // lookup neighboring screen.  given a position relative to the
   // source screen, find the screen we should move onto and where.
   // if the position is sufficiently far from the source then we
@@ -306,6 +318,7 @@ private:
   void handleClientCloseTimeout(const Event &, void *);
   void handleSwitchToScreenEvent(const Event &, void *);
   void handleSwitchInDirectionEvent(const Event &, void *);
+  void handleCycleScreensEvent(const Event &, void *);
   void handleKeyboardBroadcastEvent(const Event &, void *);
   void handleLockCursorToScreenEvent(const Event &, void *);
   void handleFakeInputBeginEvent(const Event &, void *);

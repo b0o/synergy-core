@@ -180,6 +180,23 @@ public:
     IEventQueue *m_events;
   };
 
+  // CycleScreensAction
+  class CycleScreensAction : public Action {
+  public:
+    CycleScreensAction(IEventQueue *events, EDirection);
+
+    EDirection getDirection() const;
+
+    // Action overrides
+    virtual Action *clone() const;
+    virtual String format() const;
+    virtual void perform(const Event &);
+
+  private:
+    EDirection m_direction;
+    IEventQueue *m_events;
+  };
+
   // KeyboardBroadcastAction
   class KeyboardBroadcastAction : public Action {
   public:
