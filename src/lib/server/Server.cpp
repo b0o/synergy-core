@@ -534,7 +534,7 @@ BaseClientProxy *Server::getNeighbor(BaseClientProxy *src, EDirection dir,
   // get source screen name
   String srcName = getName(src);
   assert(!srcName.empty());
-  LOG((CLOG_INFO "find neighbor on %s of \"%s\"", Config::dirName(dir),
+  LOG((CLOG_DEBUG2 "find neighbor on %s of \"%s\"", Config::dirName(dir),
        srcName.c_str()));
 
   // convert position to fraction
@@ -550,7 +550,7 @@ BaseClientProxy *Server::getNeighbor(BaseClientProxy *src, EDirection dir,
     // progress in this direction.  since we haven't found a
     // connected neighbor we return NULL.
     if (dstName.empty()) {
-      LOG((CLOG_INFO "no neighbor on %s of \"%s\"", Config::dirName(dir),
+      LOG((CLOG_DEBUG2 "no neighbor on %s of \"%s\"", Config::dirName(dir),
            srcName.c_str()));
       return NULL;
     }
@@ -559,14 +559,14 @@ BaseClientProxy *Server::getNeighbor(BaseClientProxy *src, EDirection dir,
     // ready then we can stop.
     ClientList::const_iterator index = m_clients.find(dstName);
     if (index != m_clients.end()) {
-      LOG((CLOG_INFO "\"%s\" is on %s of \"%s\" at %f", dstName.c_str(),
+      LOG((CLOG_DEBUG2 "\"%s\" is on %s of \"%s\" at %f", dstName.c_str(),
            Config::dirName(dir), srcName.c_str(), t));
       mapToPixel(index->second, dir, tTmp, x, y);
       return index->second;
     }
 
     // skip over unconnected screen
-    LOG((CLOG_INFO "ignored \"%s\" on %s of \"%s\"", dstName.c_str(),
+    LOG((CLOG_DEBUG2 "ignored \"%s\" on %s of \"%s\"", dstName.c_str(),
          Config::dirName(dir), srcName.c_str()));
     srcName = dstName;
 
