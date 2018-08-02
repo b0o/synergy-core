@@ -74,10 +74,11 @@ public:
   //! Switch in direction data
   class SwitchInDirectionInfo {
   public:
-    static SwitchInDirectionInfo *alloc(EDirection direction);
+    static SwitchInDirectionInfo *alloc(EDirection direction, bool wrap);
 
   public:
     EDirection m_direction;
+    bool m_wrap;
   };
 
   //! Screen connected data
@@ -220,10 +221,11 @@ private:
   // indicated by the direction.
   bool hasAnyNeighbor(BaseClientProxy *, EDirection) const;
 
-  // lookup neighboring screen, mapping the coordinate independent of
-  // the direction to the neighbor's coordinate space.
-  BaseClientProxy *getNeighbor(BaseClientProxy *, EDirection, SInt32 &x,
-                               SInt32 &y) const;
+  // lookup neighboring screen, mapping the coordinate independent of the
+  // direction to the neighbor's coordinate space. If wrap is true, upon
+  // encountering an empty edge, wrap back around to the opposite side.
+  BaseClientProxy *getNeighbor(BaseClientProxy *, EDirection, bool wrap,
+                               SInt32 &x, SInt32 &y) const;
 
   // lookup neighboring screen.  given a position relative to the
   // source screen, find the screen we should move onto and where.

@@ -359,7 +359,7 @@ public:
   saves the position on the neighbor in \c positionOut if it's not
   \c NULL.
   */
-  String getNeighbor(const String &, EDirection, float position,
+  String getNeighbor(const String &, EDirection, bool wrap, float position,
                      float *positionOut) const;
 
   //! Check for neighbor

@@ -526,7 +526,7 @@ bool Server::hasAnyNeighbor(BaseClientProxy *client, EDirection dir) const {
 }
 
 BaseClientProxy *Server::getNeighbor(BaseClientProxy *src, EDirection dir,
-                                     SInt32 &x, SInt32 &y) const {
+                                     bool wrap, SInt32 &x, SInt32 &y) const {
   // note -- must be locked on entry
 
   assert(src != NULL);
@@ -534,7 +534,7 @@ BaseClientProxy *Server::getNeighbor(BaseClientProxy *src, EDirection dir,
   // get source screen name
   String srcName = getName(src);
   assert(!srcName.empty());
-  LOG((CLOG_DEBUG2 "find neighbor on %s of \"%s\"", Config::dirName(dir),
+  LOG((CLOG_INFO "find neighbor on %s of \"%s\"", Config::dirName(dir),
        srcName.c_str()));
 
   // convert position to fraction
@@ -543,14 +543,14 @@ BaseClientProxy *Server::getNeighbor(BaseClientProxy *src, EDirection dir,
   // search for the closest neighbor that exists in direction dir
   float tTmp;
   for (;;) {
-    String dstName(m_config->getNeighbor(srcName, dir, t, &tTmp));
+    String dstName(m_config->getNeighbor(srcName, dir, wrap, t, &tTmp));
 
     // if nothing in that direction then return NULL. if the
     // destination is the source then we can make no more
     // progress in this direction.  since we haven't found a
     // connected neighbor we return NULL.
     if (dstName.empty()) {
-      LOG((CLOG_DEBUG2 "no neighbor on %s of \"%s\"", Config::dirName(dir),
+      LOG((CLOG_INFO "no neighbor on %s of \"%s\"", Config::dirName(dir),
            srcName.c_str()));
       return NULL;
     }
@@ -559,14 +559,14 @@ BaseClientProxy *Server::getNeighbor(BaseClientProxy *src, EDirection dir,
     // ready then we can stop.
     ClientList::const_iterator index = m_clients.find(dstName);
     if (index != m_clients.end()) {
-      LOG((CLOG_DEBUG2 "\"%s\" is on %s of \"%s\" at %f", dstName.c_str(),
+      LOG((CLOG_INFO "\"%s\" is on %s of \"%s\" at %f", dstName.c_str(),
            Config::dirName(dir), srcName.c_str(), t));
       mapToPixel(index->second, dir, tTmp, x, y);
       return index->second;
     }
 
     // skip over unconnected screen
-    LOG((CLOG_DEBUG2 "ignored \"%s\" on %s of \"%s\"", dstName.c_str(),
+    LOG((CLOG_INFO "ignored \"%s\" on %s of \"%s\"", dstName.c_str(),
          Config::dirName(dir), srcName.c_str()));
     srcName = dstName;
 
@@ -582,7 +582,7 @@ BaseClientProxy *Server::mapToNeighbor(BaseClientProxy *src, EDirection srcSide,
   assert(src != NULL);
 
   // get the first neighbor
-  BaseClientProxy *dst = getNeighbor(src, srcSide, x, y);
+  BaseClientProxy *dst = getNeighbor(src, srcSide, false, x, y);
   if (dst == NULL) {
     return NULL;
   }
@@ -608,7 +608,7 @@ BaseClientProxy *Server::mapToNeighbor(BaseClientProxy *src, EDirection srcSide,
         break;
       }
       LOG((CLOG_DEBUG2 "skipping over screen %s", getName(dst).c_str()));
-      dst = getNeighbor(lastGoodScreen, srcSide, x, y);
+      dst = getNeighbor(lastGoodScreen, srcSide, false, x, y);
     }
     assert(lastGoodScreen != NULL);
     x += dx;
@@ -624,7 +624,7 @@ BaseClientProxy *Server::mapToNeighbor(BaseClientProxy *src, EDirection srcSide,
         break;
       }
       LOG((CLOG_DEBUG2 "skipping over screen %s", getName(dst).c_str()));
-      dst = getNeighbor(lastGoodScreen, srcSide, x, y);
+      dst = getNeighbor(lastGoodScreen, srcSide, false, x, y);
     }
     assert(lastGoodScreen != NULL);
     x += dx;
@@ -640,7 +640,7 @@ BaseClientProxy *Server::mapToNeighbor(BaseClientProxy *src, EDirection srcSide,
         break;
       }
       LOG((CLOG_DEBUG2 "skipping over screen %s", getName(dst).c_str()));
-      dst = getNeighbor(lastGoodScreen, srcSide, x, y);
+      dst = getNeighbor(lastGoodScreen, srcSide, false, x, y);
     }
     assert(lastGoodScreen != NULL);
     y += dy;
@@ -656,7 +656,7 @@ BaseClientProxy *Server::mapToNeighbor(BaseClientProxy *src, EDirection srcSide,
         break;
       }
       LOG((CLOG_DEBUG2 "skipping over screen %s", getName(dst).c_str()));
-      dst = getNeighbor(lastGoodScreen, srcSide, x, y);
+      dst = getNeighbor(lastGoodScreen, srcSide, false, x, y);
     }
     assert(lastGoodScreen != NULL);
     y += dy;
@@ -698,24 +698,26 @@ void Server::avoidJumpZone(BaseClientProxy *dst, EDirection dir, SInt32 &x,
   // don't need to move inwards because that side can't provoke a jump.
   switch (dir) {
   case kLeft:
-    if (!m_config->getNeighbor(dstName, kRight, t, NULL).empty() &&
+    if (!m_config->getNeighbor(dstName, kRight, false, t, NULL).empty() &&
         x > dx + dw - 1 - z)
       x = dx + dw - 1 - z;
     break;
 
   case kRight:
-    if (!m_config->getNeighbor(dstName, kLeft, t, NULL).empty() && x < dx + z)
+    if (!m_config->getNeighbor(dstName, kLeft, false, t, NULL).empty() &&
+        x < dx + z)
       x = dx + z;
     break;
 
   case kTop:
-    if (!m_config->getNeighbor(dstName, kBottom, t, NULL).empty() &&
+    if (!m_config->getNeighbor(dstName, kBottom, false, t, NULL).empty() &&
         y > dy + dh - 1 - z)
       y = dy + dh - 1 - z;
     break;
 
   case kBottom:
-    if (!m_config->getNeighbor(dstName, kTop, t, NULL).empty() && y < dy + z)
+    if (!m_config->getNeighbor(dstName, kTop, false, t, NULL).empty() &&
+        y < dy + z)
       y = dy + z;
     break;
 
@@ -1262,7 +1264,8 @@ void Server::handleSwitchInDirectionEvent(const Event &event, void *) {
 
   // jump to screen in chosen direction from center of this screen
   SInt32 x = m_x, y = m_y;
-  BaseClientProxy *newScreen = getNeighbor(m_active, info->m_direction, x, y);
+  BaseClientProxy *newScreen =
+      getNeighbor(m_active, info->m_direction, info->m_wrap, x, y);
   if (newScreen == NULL) {
     LOG((CLOG_DEBUG1 "no neighbor %s", Config::dirName(info->m_direction)));
   } else {
@@ -2092,10 +2095,11 @@ Server::SwitchToScreenInfo::alloc(const String &screen) {
 //
 
 Server::SwitchInDirectionInfo *
-Server::SwitchInDirectionInfo::alloc(EDirection direction) {
+Server::SwitchInDirectionInfo::alloc(EDirection direction, bool wrap) {
   SwitchInDirectionInfo *info =
       (SwitchInDirectionInfo *)malloc(sizeof(SwitchInDirectionInfo));
   info->m_direction = direction;
+  info->m_wrap = wrap;
   return info;
 }
 

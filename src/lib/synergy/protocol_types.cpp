@@ -51,3 +51,18 @@ const char *kMsgEIncompatible = "EICV%2i%2i";
 const char *kMsgEBusy = "EBSY";
 const char *kMsgEUnknown = "EUNK";
 const char *kMsgEBad = "EBAD";
+
+EDirection EDirectionInverse(EDirection dir) {
+  switch (dir) {
+  case kLeft:
+    return kRight;
+  case kRight:
+    return kLeft;
+  case kTop:
+    return kBottom;
+  case kBottom:
+    return kTop;
+  default:
+    return kNoDirection;
+  }
+};

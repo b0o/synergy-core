@@ -399,7 +399,7 @@ String Config::getCanonicalName(const String &name) const {
   }
 }
 
-String Config::getNeighbor(const String &srcName, EDirection srcSide,
+String Config::getNeighbor(const String &srcName, EDirection srcSide, bool wrap,
                            float position, float *positionOut) const {
   assert(srcSide >= kFirstDirection && srcSide <= kLastDirection);
 
@@ -411,18 +411,35 @@ String Config::getNeighbor(const String &srcName, EDirection srcSide,
 
   // find edge
   const CellEdge *srcEdge, *dstEdge;
-  if (!index->second.getLink(srcSide, position, srcEdge, dstEdge)) {
-    // no neighbor
-    return "";
-  } else {
-    // compute position on neighbor
-    if (positionOut != NULL) {
-      *positionOut = dstEdge->inverseTransform(srcEdge->transform(position));
+  bool hasLink = index->second.getLink(srcSide, position, srcEdge, dstEdge);
+  if (!hasLink && wrap && !hasNeighbor(getCanonicalName(srcName), srcSide)) {
+    String prev, cur;
+    for (;;) {
+      cur = getNeighbor(srcName, EDirectionInverse(srcSide), false, position,
+                        positionOut);
+      if (cur != prev) {
+        prev = cur;
+        cur = "";
+        continue;
+      }
+      if (cur == "" && prev == "") {
+        return String();
+      }
+      return getCanonicalName(prev);
     }
-
-    // return neighbor's name
-    return getCanonicalName(dstEdge->getName());
   }
+
+  if (!hasLink) {
+    return String();
+  }
+
+  // compute position on neighbor
+  if (positionOut != NULL) {
+    *positionOut = dstEdge->inverseTransform(srcEdge->transform(position));
+  }
+
+  // return neighbor's name
+  return getCanonicalName(dstEdge->getName());
 }
 
 bool Config::hasNeighbor(const String &srcName, EDirection srcSide) const {
@@ -1007,11 +1024,13 @@ void Config::parseAction(ConfigReadContext &s, const String &name,
   }
 
   else if (name == "switchInDirection") {
-    if (args.size() != 1) {
+    if (args.size() < 1 || args.size() > 2) {
       throw XConfigRead(
-          s, "syntax for action: switchInDirection(<left|right|up|down>)");
+          s,
+          "syntax for action: switchInDirection(<left|right|up|down>[,wrap])");
     }
 
+    bool wrap = false;
     EDirection direction;
     if (args[0] == "left") {
       direction = kLeft;
@@ -1026,7 +1045,19 @@ void Config::parseAction(ConfigReadContext &s, const String &name,
                         args[0]);
     }
 
-    action = new InputFilter::SwitchInDirectionAction(m_events, direction);
+    if (args.size() == 2) {
+      if (args[1] == "true") {
+        wrap = true;
+      } else if (args[1] == "false") {
+        wrap = false;
+      } else {
+        throw XConfigRead(s, "unknown argument \"%{1}\" in switchInDirection",
+                          args[1]);
+      }
+    }
+
+    action =
+        new InputFilter::SwitchInDirectionAction(m_events, direction, wrap);
   }
 
   else if (name == "lockCursorToScreen") {

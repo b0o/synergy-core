@@ -166,9 +166,10 @@ public:
   // SwitchInDirectionAction
   class SwitchInDirectionAction : public Action {
   public:
-    SwitchInDirectionAction(IEventQueue *events, EDirection);
+    SwitchInDirectionAction(IEventQueue *events, EDirection, bool wrap);
 
     EDirection getDirection() const;
+    bool getWrap() const;
 
     // Action overrides
     virtual Action *clone() const;
@@ -176,6 +177,7 @@ public:
     virtual void perform(const Event &);
 
   private:
+    bool m_wrap;
     EDirection m_direction;
     IEventQueue *m_events;
   };

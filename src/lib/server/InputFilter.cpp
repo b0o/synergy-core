@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "server/InputFilter.h"
 #include "base/EventQueue.h"
 #include "base/Log.h"
 #include "base/TMethodEventJob.h"
+#include "server/InputFilter.h"
 #include "server/PrimaryClient.h"
 #include "server/Server.h"
 #include "synergy/KeyMap.h"
@@ -294,8 +294,8 @@ void InputFilter::SwitchToScreenAction::perform(const Event &event) {
 /**** SwitchInDirectionAction ****/
 
 InputFilter::SwitchInDirectionAction::SwitchInDirectionAction(
-    IEventQueue *events, EDirection direction)
-    : m_direction(direction), m_events(events) {
+    IEventQueue *events, EDirection direction, bool wrap)
+    : m_direction(direction), m_events(events), m_wrap(wrap) {
   // do nothing
 }
 
@@ -303,20 +303,24 @@ EDirection InputFilter::SwitchInDirectionAction::getDirection() const {
   return m_direction;
 }
 
+bool InputFilter::SwitchInDirectionAction::getWrap() const { return m_wrap; }
+
 InputFilter::Action *InputFilter::SwitchInDirectionAction::clone() const {
   return new SwitchInDirectionAction(*this);
 }
 
 String InputFilter::SwitchInDirectionAction::format() const {
   static const char *s_names[] = {"", "left", "right", "up", "down"};
+  static const char *s_bools[] = {"false", "true"};
 
-  return synergy::string::sprintf("switchInDirection(%s)",
-                                  s_names[m_direction]);
+  return synergy::string::sprintf("switchInDirection(%s, %s)",
+                                  s_names[m_direction],
+                                  s_bools[m_wrap ? 1 : 0]);
 }
 
 void InputFilter::SwitchInDirectionAction::perform(const Event &event) {
   Server::SwitchInDirectionInfo *info =
-      Server::SwitchInDirectionInfo::alloc(m_direction);
+      Server::SwitchInDirectionInfo::alloc(m_direction, m_wrap);
   m_events->addEvent(Event(m_events->forServer().switchInDirection(),
                            event.getTarget(), info,
                            Event::kDeliverImmediately));

@@ -69,6 +69,7 @@ enum EDirectionMask {
   kTopMask = 1 << kTop,
   kBottomMask = 1 << kBottom
 };
+EDirection EDirectionInverse(EDirection);
 
 // Data transfer constants
 enum EDataTransfer { kDataStart = 1, kDataChunk = 2, kDataEnd = 3 };
