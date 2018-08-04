@@ -2137,18 +2137,6 @@ Server::KeyboardBroadcastInfo::alloc(State state, const String &screens) {
   return info;
 }
 
-//
-// Server::HostCommandInfo
-//
-
-/* Server::HostCommandInfo *Server::HostCommandInfo::alloc(State state, String
- * command) { */
-/*   HostCommandInfo *info = (HostCommandInfo *)malloc(sizeof(HostCommandInfo));
- */
-/*   info->m_command = command; */
-/*   return info; */
-/* } */
-/*  */
 bool Server::isReceivedFileSizeValid() {
   return m_expectedFileSize == m_receivedFileData.size();
 }

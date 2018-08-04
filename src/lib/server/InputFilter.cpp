@@ -402,7 +402,6 @@ String InputFilter::HostCommandAction::format() const {
 
 void InputFilter::HostCommandAction::perform(const Event &event) {
   // send event
-  // Server::HostCommandInfo *info = Server::HostCommandInfo::alloc(m_command);
   Server::HostCommandInfo *info = new Server::HostCommandInfo(m_command);
   m_events->addEvent(Event(m_events->forServer().hostCommand(),
                            event.getTarget(), info,
