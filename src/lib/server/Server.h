@@ -103,6 +103,15 @@ public:
     char m_screens[1];
   };
 
+  //! Host command data
+  class HostCommandInfo {
+  public:
+    HostCommandInfo(String command) : m_command(command){};
+
+  public:
+    String m_command;
+  };
+
   /*!
   Start the server with the configuration \p config and the primary
   client (local screen) \p primaryClient.  The client retains
@@ -309,6 +318,7 @@ private:
   void handleSwitchToScreenEvent(const Event &, void *);
   void handleSwitchInDirectionEvent(const Event &, void *);
   void handleKeyboardBroadcastEvent(const Event &, void *);
+  void handleHostCommandEvent(const Event &, void *);
   void handleLockCursorToScreenEvent(const Event &, void *);
   void handleFakeInputBeginEvent(const Event &, void *);
   void handleFakeInputEndEvent(const Event &, void *);

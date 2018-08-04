@@ -205,6 +205,23 @@ public:
     IEventQueue *m_events;
   };
 
+  // HostCommandAction
+  class HostCommandAction : public Action {
+  public:
+    HostCommandAction(IEventQueue *events, String command);
+
+    String getCommand() const;
+
+    // Action overrides
+    virtual Action *clone() const;
+    virtual String format() const;
+    virtual void perform(const Event &);
+
+  private:
+    String m_command;
+    IEventQueue *m_events;
+  };
+
   // KeystrokeAction
   class KeystrokeAction : public Action {
   public:

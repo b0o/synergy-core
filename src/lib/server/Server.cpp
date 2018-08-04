@@ -138,6 +138,9 @@ Server::Server(Config &config, PrimaryClient *primaryClient,
   m_events->adoptHandler(
       m_events->forServer().keyboardBroadcast(), m_inputFilter,
       new TMethodEventJob<Server>(this, &Server::handleKeyboardBroadcastEvent));
+  m_events->adoptHandler(
+      m_events->forServer().hostCommand(), m_inputFilter,
+      new TMethodEventJob<Server>(this, &Server::handleHostCommandEvent));
   m_events->adoptHandler(m_events->forServer().lockCursorToScreen(),
                          m_inputFilter,
                          new TMethodEventJob<Server>(
@@ -1304,6 +1307,15 @@ void Server::handleKeyboardBroadcastEvent(const Event &event, void *) {
   }
 }
 
+void Server::handleHostCommandEvent(const Event &event, void *) {
+  HostCommandInfo *info = (HostCommandInfo *)event.getData();
+
+  LOG((CLOG_INFO "Executing command on host: %s", info->m_command.c_str()));
+  const int r = ARCH->command(info->m_command);
+  LOG((CLOG_INFO "Command %s with code %d", r == 0 ? "succeeded" : "failed",
+       r));
+}
+
 void Server::handleLockCursorToScreenEvent(const Event &event, void *) {
   LockCursorToScreenInfo *info = (LockCursorToScreenInfo *)event.getData();
 
@@ -2125,6 +2137,18 @@ Server::KeyboardBroadcastInfo::alloc(State state, const String &screens) {
   return info;
 }
 
+//
+// Server::HostCommandInfo
+//
+
+/* Server::HostCommandInfo *Server::HostCommandInfo::alloc(State state, String
+ * command) { */
+/*   HostCommandInfo *info = (HostCommandInfo *)malloc(sizeof(HostCommandInfo));
+ */
+/*   info->m_command = command; */
+/*   return info; */
+/* } */
+/*  */
 bool Server::isReceivedFileSizeValid() {
   return m_expectedFileSize == m_receivedFileData.size();
 }

@@ -382,6 +382,33 @@ void InputFilter::KeyboardBroadcastAction::perform(const Event &event) {
                            Event::kDeliverImmediately));
 }
 
+/**** HostCommandAction ****/
+
+InputFilter::HostCommandAction::HostCommandAction(IEventQueue *events,
+                                                  String command)
+    : m_events(events), m_command(command) {
+  // do nothing
+}
+
+String InputFilter::HostCommandAction::getCommand() const { return m_command; }
+
+InputFilter::Action *InputFilter::HostCommandAction::clone() const {
+  return new HostCommandAction(*this);
+}
+
+String InputFilter::HostCommandAction::format() const {
+  return synergy::string::sprintf("HostCommandAction(%s)", m_command.c_str());
+}
+
+void InputFilter::HostCommandAction::perform(const Event &event) {
+  // send event
+  // Server::HostCommandInfo *info = Server::HostCommandInfo::alloc(m_command);
+  Server::HostCommandInfo *info = new Server::HostCommandInfo(m_command);
+  m_events->addEvent(Event(m_events->forServer().hostCommand(),
+                           event.getTarget(), info,
+                           Event::kDeliverImmediately));
+}
+
 /**** KeystrokeAction ****/
 
 InputFilter::KeystrokeAction::KeystrokeAction(IEventQueue *events,

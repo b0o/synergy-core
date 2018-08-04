@@ -416,7 +416,7 @@ public:
       : m_error(Event::kUnknown), m_connected(Event::kUnknown),
         m_disconnected(Event::kUnknown), m_switchToScreen(Event::kUnknown),
         m_switchInDirection(Event::kUnknown),
-        m_keyboardBroadcast(Event::kUnknown),
+        m_keyboardBroadcast(Event::kUnknown), m_hostCommand(Event::kUnknown),
         m_lockCursorToScreen(Event::kUnknown),
         m_screenSwitched(Event::kUnknown) {}
 
@@ -469,6 +469,13 @@ public:
   */
   Event::Type keyboardBroadcast();
 
+  //! Get host command event type
+  /*!
+  Returns the host command event type.  The server responds to this by executing
+  a command.  The event data is a \c HostCommandInfo*.
+  */
+  Event::Type hostCommand();
+
   //! Get lock cursor event type
   /*!
   Returns the lock cursor event type.  The server responds to this
@@ -493,6 +500,7 @@ private:
   Event::Type m_switchToScreen;
   Event::Type m_switchInDirection;
   Event::Type m_keyboardBroadcast;
+  Event::Type m_hostCommand;
   Event::Type m_lockCursorToScreen;
   Event::Type m_screenSwitched;
 };

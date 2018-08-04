@@ -1023,6 +1023,16 @@ void Config::parseAction(ConfigReadContext &s, const String &name,
     action = new InputFilter::SwitchToScreenAction(m_events, screen);
   }
 
+  else if (name == "hostCommand") {
+    if (args.size() != 1) {
+      throw XConfigRead(s, "syntax for action: hostCommand(command)");
+    }
+
+    String command = args[0];
+
+    action = new InputFilter::HostCommandAction(m_events, command);
+  }
+
   else if (name == "switchInDirection") {
     if (args.size() < 1 || args.size() > 2) {
       throw XConfigRead(
