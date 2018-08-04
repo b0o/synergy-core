@@ -9,6 +9,7 @@ config.h
 /bin
 /lib
 /build
+/build-*
 /CMakeFiles
 /ext/cryptopp562
 /ext/openssl
