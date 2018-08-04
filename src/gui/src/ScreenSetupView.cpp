@@ -16,10 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ScreenSetupView.h"
 #include "ScreenSettingsDialog.h"
 #include "ScreenSetupModel.h"
+#include "ScreenSetupView.h"
 
+#include <QHeaderView>
 #include <QtCore>
 #include <QtGui>
 

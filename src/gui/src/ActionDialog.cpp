@@ -23,6 +23,7 @@
 #include "KeySequence.h"
 #include "ServerConfig.h"
 
+#include <QButtonGroup>
 #include <QtCore>
 #include <QtGui>
 

@@ -18,6 +18,7 @@
 
 #include "AboutDialog.h"
 
+#include <QButtonGroup>
 #include <QtCore>
 #include <QtGui>
 
