@@ -916,6 +916,8 @@ Window XWindowsScreen::openWindow() const {
   attr.do_not_propagate_mask = 0;
   attr.override_redirect = True;
   attr.cursor = createBlankCursor();
+  XClassHint *wm_class = XAllocClassHint();
+  wm_class->res_class = (char *)"synergy_screen";
 
   // adjust attributes and get size and shape
   SInt32 x, y, w, h;
@@ -930,6 +932,7 @@ Window XWindowsScreen::openWindow() const {
     y = m_y;
     w = m_w;
     h = m_h;
+    wm_class->res_name = (char *)"synergy_screen_primary";
   } else {
     // cursor hider window attributes.  this window is used to hide the
     // cursor when it's not on the screen.  the window is hidden as soon
@@ -942,6 +945,7 @@ Window XWindowsScreen::openWindow() const {
     y = 0;
     w = 1;
     h = 1;
+    wm_class->res_name = (char *)"synergy_screen_secondary";
   }
 
   // create and return the window
@@ -951,6 +955,7 @@ Window XWindowsScreen::openWindow() const {
   if (window == None) {
     throw XScreenOpenFailure();
   }
+  XSetClassHint(m_display, window, wm_class);
   return window;
 }
 
